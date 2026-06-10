@@ -338,6 +338,31 @@ body {
 
 
 /* ══════════════════════════════════════════
+   768px – 1023px  (md breakpoint)
+══════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  /* Op AI banner */
+  .op-ai-banner { font-size: 10px; }
+
+  /* KPI grid — 2×2 wrap */
+  .overview-kpi-grid {
+    height: auto;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .overview-kpi-tile {
+    flex: 0 0 calc(50% - 6px);
+    height: 104px;
+  }
+  .overview-kpi-divider { display: none; }
+
+  /* Overview body grid — single column */
+  .overview-body-grid { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════
    1024px – 1279px  (lg breakpoint)
 ══════════════════════════════════════════ */
 @media (min-width: 1024px) and (max-width: 1279px) {
