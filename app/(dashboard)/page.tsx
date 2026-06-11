@@ -7,6 +7,7 @@ import FleetMap from "@/components/FleetMap";
 import AddNewModal from "@/components/AddNewModal";
 import ExportReportModal from "@/components/ExportReportModal";
 import CustomiseModal from "@/components/CustomiseModal";
+import ActionsOverflow from "@/components/ActionsOverflow";
 import CountUp from "@/components/CountUp";
 
 const DEFAULT_KPIS    = ["Active vehicles", "Deliveries today", "On-time rate", "Exceptions"];
@@ -323,13 +324,25 @@ export default function OverviewPage() {
             </div>
           </div>
           <div className="overview-actions flex gap-2 shrink-0">
-            <CustomiseModal
-              kpis={kpis}
-              widgets={widgets}
-              onSave={(k, w) => { setKpis(k); setWidgets(w); }}
-            />
-            <ExportReportModal />
-            <AddNewModal />
+            <div className="page-actions-full">
+              <CustomiseModal
+                kpis={kpis}
+                widgets={widgets}
+                onSave={(k, w) => { setKpis(k); setWidgets(w); }}
+              />
+              <ExportReportModal />
+              <AddNewModal />
+            </div>
+            <ActionsOverflow>
+              <CustomiseModal
+                menuItem
+                kpis={kpis}
+                widgets={widgets}
+                onSave={(k, w) => { setKpis(k); setWidgets(w); }}
+              />
+              <ExportReportModal menuItem />
+              <AddNewModal menuItem />
+            </ActionsOverflow>
           </div>
         </div>
 

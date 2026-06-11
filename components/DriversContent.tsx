@@ -6,6 +6,8 @@ import Topbar from "@/components/Topbar";
 import CountUp from "@/components/CountUp";
 import ExportReportModal from "@/components/ExportReportModal";
 import AddNewModal from "@/components/AddNewModal";
+import ActionsOverflow from "@/components/ActionsOverflow";
+import CopyButton from "@/components/CopyButton";
 
 // --- Types -------------------------------------------------------------------
 type DriverStatus = "transit" | "delayed" | "idle" | "upcoming";
@@ -388,7 +390,7 @@ function FilterDropdown({ icon, prefix, defaultLabel, value, items, onSelect, se
         className={`h-[38px] px-3.5 inline-flex items-center gap-1.5 border rounded-[12px] text-[12px] font-medium tracking-[-0.004em] cursor-pointer select-none ${open ? "border-orange" : "border-ink-06"}`}
         style={{ background:"var(--canvas)" }}
       >
-        <span className="inline-flex items-center justify-center w-3.5 h-3.5 shrink-0 text-ink">{icon}</span>
+        <span className="filter-icon inline-flex items-center justify-center w-3.5 h-3.5 shrink-0 text-ink">{icon}</span>
         {prefix && <span className="text-ink">{prefix}</span>}
         <span className="text-ink whitespace-nowrap">{defaultLabel ?? "All"}</span>
         {isActive && <span className="w-1.5 h-1.5 rounded-full bg-orange shrink-0" />}
@@ -565,8 +567,8 @@ function DriverDrawer({
   return (
     <div className="fixed inset-0 z-40 flex items-stretch justify-end" style={{ backdropFilter:"blur(4px)", background:"rgba(0,0,0,0.30)" }} onClick={onClose}>
       <div
-        className="flex flex-col bg-surface overflow-y-auto"
-        style={{ width: 540, boxShadow:"-20px 0 50px rgba(0,0,0,0.15)", paddingTop: 31.5 }}
+        className="driver-drawer flex flex-col bg-surface overflow-y-auto"
+        style={{ width: 540, maxWidth: "100vw", boxShadow:"-20px 0 50px rgba(0,0,0,0.15)", paddingTop: 31.5 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Head */}
@@ -647,11 +649,7 @@ function DriverDrawer({
                   {/* Trip ID */}
                   <div className="flex items-center gap-2">
                     <span className="text-[12px] font-medium text-ink-40">#NDI-9318</span>
-                    <button className="cursor-pointer" title="Copy">
-                      <svg viewBox="0 0 12 12" fill="none" style={{ width:12, height:12 }}>
-                        <path d="M3.4999 3V1.5C3.4999 1.22386 3.72376 1 3.9999 1H9.9999C10.276 1 10.4999 1.22386 10.4999 1.5V8.5C10.4999 8.77615 10.276 9 9.9999 9H8.4999V10.4995C8.4999 10.7759 8.27495 11 7.9965 11H2.00333C1.72529 11 1.5 10.7777 1.5 10.4995L1.5013 3.50044C1.50135 3.22406 1.72632 3 2.00471 3H3.4999ZM2.50121 4L2.50009 10H7.4999V4H2.50121ZM4.4999 3H8.4999V8H9.4999V2H4.4999V3Z" fill="currentColor"/>
-                      </svg>
-                    </button>
+                    <CopyButton text="#NDI-9318" />
                   </div>
 
                   {/* Route */}
@@ -774,6 +772,19 @@ export default function DriversContent() {
   const [sortBy,           setSortBy]           = useState("trips");
   const [search,           setSearch]           = useState("");
   const [page,             setPage]             = useState(1);
+  const [filtersOpen,      setFiltersOpen]      = useState(false);
+  const filterWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const h = (e: MouseEvent) => {
+      if (filterWrapRef.current && !filterWrapRef.current.contains(e.target as Node)) setFiltersOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [filtersOpen]);
+
+  const activeFilterCount = [regionFilter, statusFilter, complianceFilter].filter(v => v !== "all").length;
 
   const ROWS_PER_PAGE = 10;
 
@@ -821,7 +832,7 @@ export default function DriversContent() {
       <div className="p-4 flex flex-col gap-4">
 
         {/* -- Row head ----------------------------------------------------- */}
-        <div className="flex items-end justify-between gap-6">
+        <div className="page-head flex items-end justify-between gap-6">
           <div>
             <h1 className="m-0 text-[18px] font-medium leading-none tracking-[-0.008em]">
               You have 64 drivers across 6 regions
@@ -838,8 +849,14 @@ export default function DriversContent() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
-            <ExportReportModal />
-            <AddNewModal initialScreen="add-vehicle" />
+            <div className="page-actions-full">
+              <ExportReportModal />
+              <AddNewModal initialScreen="add-vehicle" />
+            </div>
+            <ActionsOverflow>
+              <ExportReportModal menuItem />
+              <AddNewModal menuItem initialScreen="add-vehicle" />
+            </ActionsOverflow>
           </div>
         </div>
 
@@ -850,7 +867,7 @@ export default function DriversContent() {
         <div className="bg-surface border border-ink-06 rounded-xl overflow-hidden flex flex-col">
 
           {/* Filter row */}
-          <div className="flex items-center gap-2.5 px-4 py-3 border-b border-ink-06">
+          <div className="fleet-filter-row flex items-center gap-2.5 px-4 py-3 border-b border-ink-06">
             {/* Search */}
             <div
               className="flex items-center gap-2 border border-ink-06 px-3.5 shrink-0"
@@ -867,6 +884,26 @@ export default function DriversContent() {
               />
             </div>
 
+            {/* Single "Filter" toggle — shown ≤1023px only */}
+            <div ref={filterWrapRef} className="filter-collapse">
+            <button
+              onClick={() => setFiltersOpen(o => !o)}
+              className={`filter-toggle-btn h-[38px] px-3.5 items-center gap-1.5 border rounded-[12px] text-[12px] font-medium tracking-[-0.004em] cursor-pointer select-none ${filtersOpen ? "border-orange" : "border-ink-06"}`}
+              style={{ background:"var(--canvas)" }}
+            >
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" className="w-3.5 h-3.5 shrink-0 text-ink">
+                <path d="M1.5 2.5h11L8.3 7.6v3.3l-2.6 1.6V7.6L1.5 2.5z" strokeLinejoin="round"/>
+              </svg>
+              <span className="text-ink whitespace-nowrap">Filter</span>
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-orange text-white text-[10px] font-semibold leading-none">{activeFilterCount}</span>
+              )}
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-3 h-3 text-ink-40 transition-transform" style={{ transform: filtersOpen ? "rotate(180deg)" : "rotate(0deg)" }}>
+                <path d="M3 5l4 4 4-4"/>
+              </svg>
+            </button>
+
+            <div className={`filter-group ${filtersOpen ? "filter-group-open" : ""}`}>
             <FilterDropdown
               icon={<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M7 1c2.5 0 4.5 2 4.5 4.5C11.5 9 7 13 7 13S2.5 9 2.5 5.5C2.5 3 4.5 1 7 1z"/><circle cx="7" cy="5.5" r="1.7"/></svg>}
               defaultLabel="Region" value={regionFilter} items={REGION_ITEMS_D} onSelect={v => { setRegionFilter(v); setPage(1); }}
@@ -882,6 +919,8 @@ export default function DriversContent() {
               icon={<svg viewBox="0 0 14 14" fill="none" className="w-3.5 h-3.5"><path fillRule="evenodd" clipRule="evenodd" d="M6.57981 1.18062C5.34956 1.28854 4.25872 1.72079 3.33589 2.46454C2.35881 3.25262 1.63956 4.37787 1.34322 5.58304C1.21722 6.09696 1.18164 6.40554 1.18164 6.99996C1.18164 7.59437 1.21722 7.90296 1.34322 8.41687C1.86006 10.521 3.58264 12.2097 5.69314 12.6816C6.18547 12.7919 6.44389 12.8193 6.99981 12.8193C7.55572 12.8193 7.81414 12.7919 8.30647 12.6816C10.417 12.2097 12.1396 10.521 12.6564 8.41687C12.7806 7.90996 12.8174 7.59262 12.8186 7.01162C12.8191 6.44229 12.7935 6.19262 12.6815 5.69329C12.4143 4.49804 11.7143 3.34537 10.7798 2.56137C9.71581 1.66829 8.49606 1.20746 7.12814 1.18004C6.9454 1.17483 6.76254 1.17502 6.57981 1.18062ZM7.47814 2.35721C9.10447 2.53862 10.4963 3.51804 11.1998 4.97521C11.5062 5.60652 11.6654 6.29914 11.6653 7.0009C11.6652 7.70265 11.5058 8.39523 11.1992 9.02646C10.817 9.81582 10.2206 10.4819 9.47812 10.9486C8.7356 11.4153 7.87683 11.6639 6.99981 11.666C6.12241 11.6643 5.26322 11.4156 4.52049 10.9485C3.77775 10.4814 3.18146 9.81475 2.79981 9.0247C2.49348 8.39369 2.33432 7.70139 2.33432 6.99996C2.33432 6.29852 2.49348 5.60622 2.79981 4.97521C3.25716 4.02437 4.02423 3.25731 4.97506 2.79996C5.74681 2.42662 6.65856 2.26562 7.47814 2.35721ZM9.34481 4.73429C9.29259 4.7496 9.24184 4.76951 9.19314 4.79379C9.14822 4.81654 8.44997 5.49554 7.64147 6.30229L6.17089 7.76995L5.54147 7.13821C4.83272 6.42771 4.77556 6.38512 4.52647 6.38512C4.35731 6.38454 4.25872 6.42421 4.13331 6.54146C4.04246 6.6267 3.98208 6.7394 3.96142 6.86226C3.94077 6.98511 3.96099 7.11136 4.01897 7.22162C4.09831 7.37446 5.77306 9.04745 5.91947 9.12095C6.03964 9.18104 6.28289 9.18746 6.41122 9.13379C6.52264 9.08829 9.92056 5.70204 9.98997 5.56787C10.0389 5.46771 10.0592 5.35596 10.0486 5.24498C10.038 5.134 9.99694 5.02811 9.92989 4.93904C9.81264 4.78504 9.52972 4.68587 9.34481 4.73429Z" fill="currentColor"/></svg>}
               defaultLabel="Compliance" value={complianceFilter} items={COMPLIANCE_ITEMS_D} onSelect={v => { setComplianceFilter(v); setPage(1); }}
             />
+            </div>
+            </div>
 
             <div className="ml-auto">
             <FilterDropdown
@@ -892,7 +931,7 @@ export default function DriversContent() {
             </div>
           </div>
 
-          <div className="drivers-table-wrap">
+          <div className="drivers-table-wrap fleet-table-scroll">
           <table className="drivers-table w-full border-collapse">
             <thead>
               <tr style={{ background:"var(--canvas)" }}>
@@ -1072,7 +1111,7 @@ export default function DriversContent() {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-3 py-3 border-t border-ink-04">
+          <div className="pagination-row flex items-center justify-between px-3 py-3 border-t border-ink-04">
             <span className="text-[12px] font-medium pl-3" style={{ color:"var(--ink)" }}>
               Showing {Math.min((page - 1) * ROWS_PER_PAGE + 1, filtered.length)}–{Math.min(page * ROWS_PER_PAGE, filtered.length)} of {filtered.length} entries
             </span>

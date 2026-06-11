@@ -3,15 +3,10 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { ROWS, STATUS_CLS, STATUS_LABEL, STATUS_COLOR } from "@/lib/fleet-data";
 import type { ShipmentRow } from "@/lib/fleet-data";
-
 const DATE_OPTIONS = ["Today", "Yesterday", "This week", "This month", "Custom range"] as const;
 type DateRange = typeof DATE_OPTIONS[number];
 
-const CopyIcon = () => (
-  <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-3 h-3 cursor-pointer">
-    <rect x="3" y="3" width="7" height="7" rx="1"/><path d="M2 8V2h6"/>
-  </svg>
-);
+import CopyButton from "@/components/CopyButton";
 
 const TABS = ["All", "Pending", "Completed", "Cancelled"] as const;
 type Tab = typeof TABS[number];
@@ -23,26 +18,87 @@ const TAB_FILTER: Record<Tab, string[]> = {
   Cancelled: ["cancelled", "delayed"],
 };
 
-function MobileOrders({ rows }: { rows: ShipmentRow[] }) {
+function MobileOrders({ rows, activeTab, onTabChange, dateRange, onDateChange }: {
+  rows: ShipmentRow[];
+  activeTab: Tab;
+  onTabChange: (t: Tab) => void;
+  dateRange: DateRange;
+  onDateChange: (d: DateRange) => void;
+}) {
   const visible = rows.slice(0, 2);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const dateRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!filterOpen && !dateOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false);
+      if (dateRef.current && !dateRef.current.contains(e.target as Node)) setDateOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [filterOpen, dateOpen]);
 
   return (
     <div className="shipment-mobile">
       <div className="mobile-orders-header">
         <h3>Orders</h3>
         <div className="mobile-orders-actions">
-          <button type="button" className="mobile-filter-btn">
-            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4">
-              <path d="M1 3h12M3 7h8M5 11h4" />
-            </svg>
-            Filters
-          </button>
-          <button type="button" className="mobile-icon-btn" aria-label="Pick date">
-            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4">
-              <rect x="1.5" y="2.5" width="11" height="10" rx="1" />
-              <path d="M1.5 5h11M4 1.2v2.4M10 1.2v2.4" />
-            </svg>
-          </button>
+          <div ref={filterRef} className="relative">
+            <button type="button" className="mobile-filter-btn" onClick={() => setFilterOpen(o => !o)}>
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4">
+                <path d="M1 3h12M3 7h8M5 11h4" />
+              </svg>
+              Filter
+              {activeTab !== "All" && <span className="w-1.5 h-1.5 rounded-full bg-orange shrink-0" />}
+            </button>
+            {filterOpen && (
+              <div className="absolute right-0 top-[calc(100%+6px)] z-30 bg-surface border border-ink-06 rounded-xl p-2 shadow-[0_8px_24px_rgba(0,0,0,0.10)] min-w-[150px]">
+                {TABS.map((tab) => (
+                  <div
+                    key={tab}
+                    onClick={() => { onTabChange(tab); setFilterOpen(false); }}
+                    className={`flex items-center justify-between gap-4 px-2.5 py-2 rounded-lg text-[12px] font-medium tracking-[-0.004em] cursor-pointer ${tab === activeTab ? "bg-orange-soft text-orange" : "text-ink hover:bg-canvas"}`}
+                  >
+                    {tab}
+                    {tab === activeTab && (
+                      <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 shrink-0">
+                        <path d="M2 6l2.5 2.5L10 3"/>
+                      </svg>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div ref={dateRef} className="relative">
+            <button type="button" className="mobile-icon-btn" aria-label="Pick date" onClick={() => setDateOpen(o => !o)}>
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4">
+                <rect x="1.5" y="2.5" width="11" height="10" rx="1" />
+                <path d="M1.5 5h11M4 1.2v2.4M10 1.2v2.4" />
+              </svg>
+            </button>
+            {dateOpen && (
+              <div className="absolute right-0 top-[calc(100%+6px)] z-30 bg-surface border border-ink-06 rounded-xl p-2 shadow-[0_8px_24px_rgba(0,0,0,0.10)] min-w-[150px]">
+                {DATE_OPTIONS.map((opt) => (
+                  <div
+                    key={opt}
+                    onClick={() => { onDateChange(opt); setDateOpen(false); }}
+                    className={`flex items-center justify-between gap-4 px-2.5 py-2 rounded-lg text-[12px] font-medium tracking-[-0.004em] cursor-pointer ${opt === dateRange ? "bg-orange-soft text-orange" : "text-ink hover:bg-canvas"}`}
+                  >
+                    {opt}
+                    {opt === dateRange && (
+                      <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 shrink-0">
+                        <path d="M2 6l2.5 2.5L10 3"/>
+                      </svg>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <button type="button" className="mobile-icon-btn" aria-label="Search orders">
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4">
               <circle cx="6" cy="6" r="4.5" />
@@ -56,7 +112,7 @@ function MobileOrders({ rows }: { rows: ShipmentRow[] }) {
         <div className="mobile-row-label">Order ID</div>
         {visible.map((row) => (
           <div key={`${row.id}-id`} className="mobile-order-cell mobile-order-strong">
-            {row.id.replace("N", "H")} <CopyIcon />
+            {row.id.replace("N", "H")} <CopyButton text={row.id.replace("N", "H")} />
           </div>
         ))}
 
@@ -248,7 +304,7 @@ export default function ShipmentTable() {
             return (
               <tr key={row.id} className="border-b border-ink-04 last:border-b-0" style={{ height: "54px", backgroundColor: idx % 2 === 0 ? "var(--surface)" : "var(--canvas)" }}>
                 <td className="px-4 text-xs font-medium">
-                  <span className="inline-flex items-center gap-1.5" style={{ color: "var(--ink)" }}>{row.id} <CopyIcon /></span>
+                  <span className="inline-flex items-center gap-1.5" style={{ color: "var(--ink)" }}>{row.id} <CopyButton text={row.id} /></span>
                 </td>
                 <td className="px-4 text-xs">
                   <span className="inline-flex items-center gap-1.5 text-ink-40">
@@ -305,7 +361,13 @@ export default function ShipmentTable() {
         </tbody>
       </table>
       </div>
-      <MobileOrders rows={filtered} />
+      <MobileOrders
+        rows={filtered}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        dateRange={dateRange}
+        onDateChange={setDateRange}
+      />
     </>
   );
 }

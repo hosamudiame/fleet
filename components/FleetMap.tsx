@@ -216,6 +216,21 @@ export default function FleetMap() {
   const [regionFilter,  setRegionFilter]  = useState("all");
   const [vehicleFilter, setVehicleFilter] = useState("all");
   const [search,        setSearch]        = useState("");
+  const [panelOpen,     setPanelOpen]     = useState(false);
+  const [selectedId,    setSelectedId]    = useState<string | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!panelOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setPanelOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [panelOpen]);
+
+  const filtersActive =
+    statusFilter !== "all" || regionFilter !== "all" || vehicleFilter !== "all" || search !== "";
 
   const hoveredRow = ROWS.find((r) => r.id === hoveredId) ?? null;
 
@@ -229,6 +244,13 @@ export default function FleetMap() {
     }
     return true;
   });
+
+  // Tapped pin → mobile popup (only rendered <768px)
+  const selectedRow = visibleRows.find((r) => r.id === selectedId) ?? null;
+  const fuelColor = (fuel: string) => {
+    const n = parseInt(fuel);
+    return n >= 60 ? "var(--color-green)" : n >= 30 ? "var(--color-amber)" : "var(--color-red)";
+  };
 
   return (
     <div className="fleet-map-root bg-surface border border-ink-06 relative w-full" style={{ height: "437px", borderRadius: "12px", borderWidth: "1px" }}>
@@ -261,19 +283,46 @@ export default function FleetMap() {
             />
           </div>
         </div>
-        <div className="fleet-map-mobile-controls">
-          <button type="button" className="mobile-filter-btn">
+        <div ref={panelRef} className="fleet-map-mobile-controls relative">
+          <button type="button" className="mobile-filter-btn" onClick={() => setPanelOpen(o => !o)}>
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4">
               <path d="M1 3h12M3 7h8M5 11h4" />
             </svg>
-            Filters
+            Filter
+            {filtersActive && <span className="w-1.5 h-1.5 rounded-full bg-orange shrink-0" />}
           </button>
-          <button type="button" className="mobile-icon-btn" aria-label="Search fleets">
+          <button type="button" className="mobile-icon-btn" aria-label="Search fleets" onClick={() => setPanelOpen(o => !o)}>
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4">
               <circle cx="6" cy="6" r="4.5" />
               <path d="M10 10l3 3" />
             </svg>
           </button>
+
+          {panelOpen && (
+            <div className="absolute right-0 top-[calc(100%+8px)] z-30 flex flex-col items-stretch gap-2.5 bg-surface border border-ink-06 rounded-xl p-3 w-[224px] shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+              <div className="bg-surface border border-ink-06 rounded-full px-2.5 py-1.5 text-[11px] font-medium tracking-[-0.004em] text-ink-30 inline-flex items-center gap-1.5">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" className="w-[11px] h-[11px] shrink-0"><circle cx="6" cy="6" r="4.5"/><path d="M10 10l3 3"/></svg>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search for fleets"
+                  className="border-none outline-none bg-transparent text-[11px] font-medium text-ink placeholder:text-ink-30 w-full"
+                />
+              </div>
+              <FilterDropdown
+                label="Status:" value={statusFilter} items={STATUS_ITEMS} onSelect={setStatusFilter}
+                icon={<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" className="w-[11px] h-[11px]"><path d="M1 3h12M3 7h8M5 11h4"/></svg>}
+              />
+              <FilterDropdown
+                label="Region:" value={regionFilter} items={REGION_ITEMS} onSelect={setRegionFilter} searchable
+                icon={<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" className="w-[11px] h-[11px]"><path d="M7 1c2.5 0 4.5 2 4.5 4.5C11.5 9 7 13 7 13S2.5 9 2.5 5.5C2.5 3 4.5 1 7 1z"/><circle cx="7" cy="5.5" r="1.7"/></svg>}
+              />
+              <FilterDropdown
+                label="Vehicle:" value={vehicleFilter} items={VEHICLE_ITEMS} onSelect={setVehicleFilter}
+                icon={<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" className="w-[11px] h-[11px]"><path d="M1 3h12M3 7h8M5 11h4"/></svg>}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -287,10 +336,13 @@ export default function FleetMap() {
           const bg = STATUS_COLOR[row.status];
           const isHovered = hoveredId === row.id;
           const lNum = parseFloat(row.mapPos.l);
+          const tNum = parseFloat(row.mapPos.t);
           const showRight = lNum <= 55;
-          const popupStyle: React.CSSProperties = showRight
-            ? { left: "38px", top: 0 }
-            : { right: "38px", top: 0 };
+          const showBelow = tNum <= 50;
+          const popupStyle: React.CSSProperties = {
+            ...(showRight ? { left: "38px" } : { right: "38px" }),
+            ...(showBelow ? { top: 0 } : { bottom: 0 }),
+          };
 
           return (
             <div
@@ -299,6 +351,7 @@ export default function FleetMap() {
               style={{ left: row.mapPos.l, top: row.mapPos.t, transform: "translate(-50%, -50%)", zIndex: isHovered ? 20 : 10 }}
               onMouseEnter={() => setHoveredId(row.id)}
               onMouseLeave={() => setHoveredId(null)}
+              onClick={() => setSelectedId((id) => (id === row.id ? null : row.id))}
             >
               <div
                 className="w-[30px] h-[30px] flex items-center justify-center shadow-[0_8px_18px_rgba(0,0,0,0.18)] cursor-pointer transition-transform duration-100"
@@ -316,7 +369,7 @@ export default function FleetMap() {
                       width: 10,
                       height: 10,
                       background: "var(--canvas)",
-                      top: 18,
+                      ...(showBelow ? { top: 18 } : { bottom: 18 }),
                       transform: "rotate(45deg)",
                       ...(showRight
                         ? { left: -5,  borderBottom: "1px solid var(--ink-06)", borderLeft:  "1px solid var(--ink-06)" }
@@ -330,23 +383,38 @@ export default function FleetMap() {
           );
         })}
 
-        <div className="fleet-map-mobile-popup">
-          <div className="mobile-map-popup-head">
-            <span className="mobile-map-order">
-              <span className="mobile-popup-dot">
-                <VanIcon />
+        {selectedRow && (
+          <div className="fleet-map-mobile-popup">
+            <div className="mobile-map-popup-head">
+              <span className="mobile-map-order">
+                <span className="mobile-popup-dot" style={{ background: STATUS_COLOR[selectedRow.status] }}>
+                  <PinIcon icon={selectedRow.vehIcon} />
+                </span>
+                Order {selectedRow.id}
               </span>
-              Order #NDI-930
-            </span>
-            <span className="mobile-map-status">Idle</span>
+              <span className="inline-flex items-center gap-2">
+                <span className={`mobile-map-status ${STATUS_CLS[selectedRow.status]}`}>
+                  {STATUS_LABEL[selectedRow.status]}
+                </span>
+                <button
+                  onClick={() => setSelectedId(null)}
+                  aria-label="Close vehicle details"
+                  className="w-6 h-6 rounded-full bg-canvas border border-ink-06 inline-flex items-center justify-center cursor-pointer shrink-0"
+                >
+                  <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4" className="w-2.5 h-2.5">
+                    <path d="M2 2l6 6M8 2L2 8"/>
+                  </svg>
+                </button>
+              </span>
+            </div>
+            <div className="mobile-map-popup-body">
+              <span>Driver</span><strong>{selectedRow.driver}</strong>
+              <span>Location</span><strong><em>{selectedRow.from}</em> <span>→</span> {selectedRow.to}</strong>
+              <span>Last check in</span><strong>{selectedRow.lastCheckIn}</strong>
+              <span>Fuel</span><strong style={{ color: fuelColor(selectedRow.fuel) }}>{selectedRow.fuel}</strong>
+            </div>
           </div>
-          <div className="mobile-map-popup-body">
-            <span>Driver</span><strong>Fatima Bello</strong>
-            <span>Location</span><strong><em>Yaba</em> <span>→</span> Surulere</strong>
-            <span>Last check in</span><strong>8 mins ago</strong>
-            <span>Fuel</span><strong className="text-green">87%</strong>
-          </div>
-        </div>
+        )}
 
       </div>
 

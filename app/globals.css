@@ -334,78 +334,57 @@ body {
 /* ── Sidebar width ── */
 .sidebar-root {
   width: clamp(180px, calc(180px + 0.25 * (100vw - 1280px)), 220px);
+  view-transition-name: fleet-sidebar;
 }
 
+/* Collapse/expand choreography: the group tweens the sidebar bounds
+   with a soft ease-out while old/new snapshots crossfade unstretched */
+::view-transition-group(fleet-sidebar) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes vt-sidebar-out { to   { opacity: 0; } }
+@keyframes vt-sidebar-in  { from { opacity: 0; } }
+::view-transition-old(fleet-sidebar),
+::view-transition-new(fleet-sidebar) {
+  height: 100%;
+  object-fit: none;
+  object-position: top left;
+  overflow: clip;
+}
+::view-transition-old(fleet-sidebar) { animation: vt-sidebar-out 140ms ease both; }
+::view-transition-new(fleet-sidebar) { animation: vt-sidebar-in 200ms 80ms ease both; }
 
-/* ══════════════════════════════════════════
-   768px – 1023px  (md breakpoint)
-══════════════════════════════════════════ */
-@media (min-width: 768px) and (max-width: 1023px) {
-
-  /* Op AI banner */
-  .op-ai-banner { font-size: 10px; }
-
-  /* KPI grid — 2×2 wrap */
-  .overview-kpi-grid {
-    height: auto;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: 12px;
-  }
-  .overview-kpi-tile {
-    flex: 0 0 calc(50% - 6px);
-    height: 104px;
-  }
-  .overview-kpi-divider { display: none; }
-
-  /* Overview body grid — single column */
-  .overview-body-grid { grid-template-columns: 1fr; }
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-root { view-transition-name: none; }
 }
 
-/* ══════════════════════════════════════════
-   1024px – 1279px  (lg breakpoint)
-══════════════════════════════════════════ */
-@media (min-width: 1024px) and (max-width: 1279px) {
+/* ── Mobile nav primitives (inert on desktop) ── */
+.topbar-menu-btn { display: none; }
+.topbar-logo { display: none; }
+.sidebar-overlay { display: none; }
 
-  /* Sidebar icon-only */
-  .sidebar-root { width: 56px; }
-  .sidebar-nav-label,
-  .sidebar-section-label,
-  .sidebar-search,
-  .sidebar-collapse-btn { display: none; }
-  .sidebar-brand { justify-content: center; padding: 0; }
-  .sidebar-logo { height: 20px; width: auto; }
-  .sidebar-nav-item { justify-content: center; padding: 8px; gap: 0; }
+/* ── Collapsed filter group (single "Filter" button ≤1023px) ──
+   On desktop the wrapper and group are display:contents so the
+   dropdowns sit inline in the filter row exactly as before. */
+.filter-toggle-btn { display: none; }
+.filter-collapse { display: contents; }
+.filter-group { display: contents; }
 
-  /* Op AI banner */
-  .op-ai-banner { font-size: 10px; }
+/* ── Page-header actions: full buttons on desktop, "⋯" overflow <768 ── */
+.page-actions-full { display: contents; }
+.page-actions-overflow { display: none; }
 
-  /* Overview body grid */
-  .overview-body-grid { grid-template-columns: 26% 1fr; }
+/* Closed overflow menu stays mounted (its children render modals);
+   fixed-position dialogs/toasts inside re-enable their visibility */
+.actions-menu-closed { visibility: hidden; pointer-events: none; }
+.modal-overlay-wrap,
+.app-toast { visibility: visible; pointer-events: auto; }
 
-  /* Fleet status table — reduce column min-widths to fit ~936px */
-  .fleet-status-table th:nth-child(1) { min-width: 150px !important; }
-  .fleet-status-table th:nth-child(2) { min-width: 100px !important; }
-  .fleet-status-table th:nth-child(3) { min-width: 90px  !important; }
-  .fleet-status-table th:nth-child(4) { min-width: 125px !important; }
-  .fleet-status-table th:nth-child(5) { min-width: 80px  !important; }
-  .fleet-status-table th:nth-child(6) { min-width: 100px !important; }
-  .fleet-status-table th:nth-child(7) { min-width: 70px  !important; }
-  .fleet-status-table th:nth-child(8) { min-width: 80px  !important; }
-  .fleet-status-table th:nth-child(9) { min-width: 36px  !important; }
+/* ── Horizontal scroll wrapper for wide tables ── */
+.fleet-table-scroll { overflow-x: auto; }
 
-  /* Drivers table — reduce column min-widths to fit ~936px */
-  .drivers-table th:nth-child(1)  { min-width: 155px !important; }
-  .drivers-table th:nth-child(2)  { min-width: 100px !important; }
-  .drivers-table th:nth-child(3)  { min-width: 95px  !important; }
-  .drivers-table th:nth-child(4)  { min-width: 125px !important; }
-  .drivers-table th:nth-child(5)  { min-width: 90px  !important; }
-  .drivers-table th:nth-child(6)  { min-width: 55px  !important; }
-  .drivers-table th:nth-child(7)  { min-width: 65px  !important; }
-  .drivers-table th:nth-child(8)  { min-width: 90px  !important; }
-  .drivers-table th:nth-child(9)  { min-width: 36px  !important; }
-  .drivers-table th:nth-child(10) { min-width: 36px  !important; }
-}
+
 
 /* ── Button base ── */
 .btn {
@@ -439,6 +418,54 @@ body {
 .veh-van     { background: var(--veh-van-bg);     color: var(--veh-van-color); }
 .veh-truck   { background: var(--veh-truck-bg);   color: var(--veh-truck-color); }
 .veh-scooter { background: var(--veh-scooter-bg); color: var(--veh-scooter-color); }
+
+/* ── Filter icon wrapper ──
+   Safari collapses inline SVGs that have no width/height attributes;
+   size them to the 14px wrapper explicitly. */
+.filter-icon svg { width: 100%; height: 100%; }
+
+/* ── Copy-to-clipboard button ── */
+.copy-btn {
+  cursor: pointer;
+  color: inherit;
+  transition: color 0.12s ease, transform 0.12s ease;
+}
+.copy-btn:hover { color: var(--color-ink); }
+.copy-btn:active { transform: scale(0.82); }
+
+.copy-pop {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  background: var(--color-ink);
+  color: var(--color-canvas);
+  font: 500 10px/1 var(--font-geist-sans), sans-serif;
+  letter-spacing: -0.004em;
+  padding: 5px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: copy-pop-in 0.16s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+.copy-pop::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--color-ink);
+}
+@keyframes copy-pop-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px) scale(0.9); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1);   }
+}
+
+/* Let the bubble escape the clipped mobile order cells while shown */
+.mobile-orders-grid:has(.copy-pop),
+.mobile-order-cell:has(.copy-pop) { overflow: visible; }
 
 /* ── Icon button (32px circle) ── */
 .icon-btn {
@@ -563,6 +590,12 @@ html[data-theme="dark"] .map-bg-light {
 html[data-theme="dark"] .map-light { display: none;  }
 html[data-theme="dark"] .map-dark  { display: block; }
 
+/* ── Wordmark swap (light vs dark theme) ── */
+.logo-light { display: block; }
+.logo-dark  { display: none;  }
+html[data-theme="dark"] .logo-light { display: none;  }
+html[data-theme="dark"] .logo-dark  { display: block; }
+
 /* ── Icon inversion for dark mode ──
    Apply .icon-adaptive to any <img> icon that is a black/dark SVG or PNG.
    It inverts to near-white in dark mode and is a no-op in light mode. */
@@ -625,12 +658,11 @@ html[data-theme="dark"] .icon-ink-60 {
   height: 9px;
 }
 
+/* colour comes from the status-* class applied alongside */
 .mobile-map-status {
   height: 26px;
-  padding: 0 16px;
+  padding: 0 14px;
   border-radius: 999px;
-  background: var(--status-idle-bg);
-  color: var(--color-amber-deep);
   display: inline-flex;
   align-items: center;
   font-size: 12px;
@@ -787,4 +819,394 @@ html[data-theme="dark"] .icon-ink-60 {
 
 .overview-body-grid {
   grid-template-columns: 29% 1fr;
+}
+
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS (kept last so they win the cascade)
+═══════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════
+   ≤ 1023px  (tablet & below — shared rules)
+══════════════════════════════════════════ */
+@media (max-width: 1023px) {
+
+  /* KPI grid — 2×2 wrap */
+  .overview-kpi-grid {
+    height: auto;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 12px;
+  }
+  /* Tiles can grow — a fixed height made wrapped titles spill into
+     the tile below (the fleet-status band never clips because its
+     tiles are auto-height) */
+  .overview-kpi-tile {
+    flex: 0 0 calc(50% - 6px);
+    height: auto;
+    min-height: 104px;
+  }
+  .overview-kpi-divider { display: none; }
+
+  /* Dividers like the fleet-status band. Tiles are children 1/3/5/7:
+     3 and 7 start the right column, 5 and 7 form the bottom row. */
+  .overview-kpi-grid .overview-kpi-tile:nth-child(3),
+  .overview-kpi-grid .overview-kpi-tile:nth-child(7) {
+    border-left: 1px solid var(--color-ink-04);
+    padding-left: 14px;
+  }
+  .overview-kpi-grid .overview-kpi-tile:nth-child(5),
+  .overview-kpi-grid .overview-kpi-tile:nth-child(7) {
+    border-top: 1px solid var(--color-ink-04);
+    padding-top: 14px;
+  }
+
+  /* Overview body grid — single column */
+  .overview-body-grid { grid-template-columns: 1fr; }
+
+  /* Fleet status / Drivers KPI bands — 2×2 */
+  .fleet-status-kpi-band,
+  .drivers-kpi-band {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 24px;
+  }
+  .fleet-status-kpi-band > div:nth-child(odd),
+  .drivers-kpi-band > div:nth-child(odd) {
+    border-left: none;
+    padding-left: 0;
+  }
+  .fleet-status-kpi-band > div:nth-child(even),
+  .drivers-kpi-band > div:nth-child(even) {
+    padding-right: 0;
+  }
+
+  /* Op AI banner — one flowing paragraph: icon, label and copy are
+     inline so wrapped lines continue under "Op AI:" instead of the
+     label and description breaking into separate columns */
+  .op-ai-banner {
+    display: block;
+    line-height: 1.5;
+  }
+  .op-ai-banner img,
+  .op-ai-banner svg {
+    display: inline-block;
+    vertical-align: -2.5px;
+    margin-right: 5px;
+  }
+  .op-ai-banner b {
+    white-space: nowrap;
+    margin-right: 4px;
+    line-height: inherit;
+  }
+  .op-ai-banner span {
+    display: inline;
+    line-height: inherit;
+  }
+
+  /* Filter rows wrap instead of overflowing */
+  .fleet-filter-row { flex-wrap: wrap; row-gap: 10px; }
+
+  /* Individual filter dropdowns collapse behind one "Filter" button.
+     The open group drops down as a panel anchored to the button. */
+  .filter-toggle-btn { display: inline-flex; }
+  .filter-collapse { display: inline-flex; position: relative; }
+  .filter-group { display: none; }
+  .filter-group.filter-group-open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 40;
+    width: 236px;
+    padding: 10px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-ink-06);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+  /* Full-width triggers inside the panel, chevron pushed right */
+  .filter-group-open > div { display: flex; }
+  .filter-group-open > div > button { flex: 1; }
+  .filter-group-open > div > button > svg:last-child { margin-left: auto; }
+
+  /* Modals — fluid width instead of the desktop clamp */
+  .modal-shell { width: min(640px, calc(100vw - 40px)) !important; }
+
+  /* View switcher (Table / Cards / Map) — icons only */
+  .view-switcher .view-switch-label { display: none; }
+  .view-switcher button {
+    gap: 0;
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  /* Fleet-status map view — stack: full-width map, vehicle cards below */
+  .fleet-map-panel {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    row-gap: 12px;
+  }
+  .fleet-map-panel .fleet-map-surface { height: 420px; }
+  .fleet-map-side-list {
+    border-left: none;
+    overflow: visible;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    align-items: start;
+  }
+  .fleet-map-side-list > div { margin-bottom: 0; }
+  .fleet-map-side-list > div:first-child { grid-column: 1 / -1; padding-bottom: 0; }
+
+  /* Shipment-table header wraps (title + tab bar + date) */
+  .shipment-table-header {
+    height: auto !important;
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  /* Fleet-map controls collapse behind the "Filter" button */
+  .fleet-map-desktop-controls { display: none; }
+  .fleet-map-mobile-controls { display: flex; gap: 8px; }
+
+  /* Pagination rows wrap */
+  .pagination-row { flex-wrap: wrap; gap: 10px; }
+
+  /* Fleet cards grid — 2 columns */
+  .fleet-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    min-height: 0 !important;
+  }
+
+  /* Driver profile hero wraps; KPI strip 2×2 */
+  .driver-hero { flex-wrap: wrap; row-gap: 16px; }
+  .driver-hero-stats { flex-wrap: wrap; gap: 20px 32px; }
+  .driver-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ══════════════════════════════════════════
+   768px – 1023px  (md breakpoint)
+══════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Op AI banner */
+  .op-ai-banner { font-size: 10px; }
+}
+
+/* ══════════════════════════════════════════
+   ≤ 767px  (mobile)
+══════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+  /* ── Sidebar → off-canvas drawer ── */
+  .sidebar-root {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    width: 264px !important;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 24px 0 60px rgba(0, 0, 0, 0.18);
+  }
+  .sidebar-root.sidebar-open { transform: translateX(0); }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+  .sidebar-overlay[data-open] { opacity: 1; pointer-events: auto; }
+
+  .topbar-menu-btn { display: inline-flex; }
+  .topbar-logo { display: inline-block; }
+
+  /* Notification panel never wider than the viewport */
+  .notif-panel { max-width: calc(100vw - 24px); }
+
+  /* ── Page headers: title and "⋯" share the first line, the
+        Op AI banner flows full-width below ── */
+  .page-head,
+  .overview-head {
+    display: block;
+    position: relative;
+  }
+  .page-head > div:first-child h1,
+  .overview-title {
+    padding-right: 44px;
+  }
+  .page-head > div:last-child,
+  .overview-actions {
+    position: absolute;
+    top: -7px;
+    right: 0;
+  }
+
+  /* Anchor the filter panel to the button's right edge so it
+     stays inside the viewport on narrow screens */
+  .filter-group.filter-group-open { left: auto; right: 0; }
+
+  /* When the filter row wraps, wrapped items (view switcher, sort)
+     align left with everything else instead of floating right */
+  .fleet-filter-row > .ml-auto,
+  .fleet-filter-row > .view-switcher { margin-left: 0; }
+
+  /* The switcher has its own line here, so bring the labels back
+     (they're icon-only at 768–1023 where the row is shared) */
+  .view-switcher .view-switch-label { display: inline; }
+  .view-switcher button {
+    gap: 6px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  /* Customise / Export collapse into the "⋯" menu; Add new stays */
+  .page-actions-full { display: none; }
+  .page-actions-overflow { display: inline-flex; }
+
+
+  /* ── Recent shipments → mobile order cards ── */
+  .shipment-table-header { display: none; }
+  .shipment-table-desktop { display: none; }
+  .shipment-mobile { display: block; }
+  .overview-table-card { height: auto !important; }
+
+  /* ── Fleet map → mobile popup / legend (controls collapse at ≤1023) ── */
+  .fleet-map-desktop-legend,
+  .fleet-map-maximize,
+  .fleet-hover-popup { display: none; }
+
+  .fleet-map-root { height: 540px !important; }
+
+  .fleet-map-mobile-popup {
+    display: block;
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 40; /* above pins (z-20) and the map header (z-20) */
+    background: var(--color-surface);
+    border: 1px solid var(--color-ink-06);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+    overflow: hidden;
+  }
+
+  .fleet-map-mobile-legend {
+    display: inline-flex;
+    position: absolute;
+    top: 62px;
+    left: 14px;
+    z-index: 10;
+    align-items: center;
+    gap: 10px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-ink-06);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: -0.004em;
+  }
+  .fleet-map-mobile-legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .fleet-map-mobile-legend > span > span {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+  }
+
+  /* ── Fleet cards grid — single column ── */
+  .fleet-cards-grid { grid-template-columns: 1fr; }
+
+  /* ── Fleet-status map view — shorter map, single-column cards ── */
+  .fleet-map-panel .fleet-map-surface { height: 340px; }
+  .fleet-map-side-list { grid-template-columns: 1fr; }
+
+  /* ── Modals — use nearly the full screen, stack form fields ── */
+  .modal-overlay-wrap { padding: 12px; }
+  .modal-shell {
+    max-height: calc(100vh - 24px);
+    border-radius: 18px;
+  }
+  .modal-grid-2 { grid-template-columns: 1fr; }
+  .modal-grid-4 { grid-template-columns: repeat(2, 1fr); }
+
+  /* Bulk-upload banner — button drops to its own line */
+  .bulk-banner { flex-wrap: wrap; }
+  .bulk-banner > div { flex-basis: calc(100% - 56px); }
+  .bulk-banner > button { margin-left: 56px; }
+
+  /* Success banner — drop the secondary description so the
+     title fits the 52px bar */
+  .toast-desc { display: none; }
+
+  /* ── Driver drawer fills the screen ── */
+  .driver-drawer { width: 100vw !important; }
+
+  /* ── Driver profile compliance rows reflow: title/detail on top,
+        expiry + badge on their own line below ── */
+  .comp-row { flex-wrap: wrap; row-gap: 10px; }
+  .comp-row-right {
+    width: 100%;
+    justify-content: space-between;
+    padding-left: 40px; /* aligns under the text, past the 28px icon + gap */
+  }
+}
+
+/* ══════════════════════════════════════════
+   1024px – 1279px  (lg breakpoint)
+══════════════════════════════════════════ */
+@media (min-width: 1024px) and (max-width: 1279px) {
+
+  /* Sidebar icon-only */
+  .sidebar-root { width: 56px; }
+  .sidebar-nav-label,
+  .sidebar-section-label,
+  .sidebar-search,
+  .sidebar-collapse-btn { display: none; }
+  .sidebar-brand { justify-content: center; padding: 0; }
+  .sidebar-logo { height: 20px; width: auto; }
+  .sidebar-nav-item { justify-content: center; padding: 8px; gap: 0; }
+
+  /* Op AI banner */
+  .op-ai-banner { font-size: 10px; }
+
+  /* Overview body grid */
+  .overview-body-grid { grid-template-columns: 26% 1fr; }
+
+  /* Fleet status table — reduce column min-widths to fit ~936px */
+  .fleet-status-table th:nth-child(1) { min-width: 150px !important; }
+  .fleet-status-table th:nth-child(2) { min-width: 100px !important; }
+  .fleet-status-table th:nth-child(3) { min-width: 90px  !important; }
+  .fleet-status-table th:nth-child(4) { min-width: 125px !important; }
+  .fleet-status-table th:nth-child(5) { min-width: 80px  !important; }
+  .fleet-status-table th:nth-child(6) { min-width: 100px !important; }
+  .fleet-status-table th:nth-child(7) { min-width: 70px  !important; }
+  .fleet-status-table th:nth-child(8) { min-width: 80px  !important; }
+  .fleet-status-table th:nth-child(9) { min-width: 36px  !important; }
+
+  /* Drivers table — reduce column min-widths to fit ~936px */
+  .drivers-table th:nth-child(1)  { min-width: 155px !important; }
+  .drivers-table th:nth-child(2)  { min-width: 100px !important; }
+  .drivers-table th:nth-child(3)  { min-width: 95px  !important; }
+  .drivers-table th:nth-child(4)  { min-width: 125px !important; }
+  .drivers-table th:nth-child(5)  { min-width: 90px  !important; }
+  .drivers-table th:nth-child(6)  { min-width: 55px  !important; }
+  .drivers-table th:nth-child(7)  { min-width: 65px  !important; }
+  .drivers-table th:nth-child(8)  { min-width: 90px  !important; }
+  .drivers-table th:nth-child(9)  { min-width: 36px  !important; }
+  .drivers-table th:nth-child(10) { min-width: 36px  !important; }
 }

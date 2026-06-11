@@ -129,7 +129,20 @@ export default function Topbar({ crumb }: TopbarProps) {
   return (
     <>
     <div className="h-[60px] px-4 py-0 flex items-center justify-between bg-canvas border-b border-ink-04">
-      <span className="inline text-xs text-ink">{crumb}</span>
+      <div className="flex items-center gap-2.5 min-w-0">
+        <button
+          onClick={() => window.dispatchEvent(new Event("fleetops:nav-toggle"))}
+          className="topbar-menu-btn w-8 h-8 rounded-full bg-surface border border-ink-04 items-center justify-center text-ink cursor-pointer hover:bg-ink-04 transition-colors shrink-0"
+          title="Menu"
+          aria-label="Toggle navigation"
+        >
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className="w-3.5 h-3.5">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />
+          </svg>
+        </button>
+        <img src="/icons/logo-mark.svg" alt="Fleetops" className="topbar-logo w-[18px] h-[18px] shrink-0" />
+        <span className="inline text-xs text-ink truncate">{crumb}</span>
+      </div>
 
       <div className="flex items-center gap-2">
 
@@ -211,7 +224,7 @@ export default function Topbar({ crumb }: TopbarProps) {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[340px] bg-surface border border-ink-06 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.14),0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="notif-panel absolute right-0 top-[calc(100%+8px)] z-50 w-[340px] bg-surface border border-ink-06 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.14),0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
 
               {/* Header */}
               <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-ink-04">

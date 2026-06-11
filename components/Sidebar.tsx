@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useLayoutEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
+import { flushSync } from "react-dom";
 
 type NavEntry = {
   label: string;
@@ -16,7 +17,7 @@ const navMain: NavEntry[] = [
   { label: "Overview",     href: "/",            icon: "/icons/overview.svg",      activeIcon: "/icons/overview-active.svg" },
   { label: "Fleet status", href: "/fleet-status", icon: "/icons/fleet-status.svg", activeIcon: "/icons/fleet-status-active.svg" },
   { label: "Drivers",      href: "/drivers",      icon: "/icons/driver.svg",        activeIcon: "/icons/drivers-active.svg" },
-  { label: "Analytics",    href: "/analytics",    icon: "/icons/analytics.svg",     disabled: true },
+  { label: "Analytics",    href: "/analytics",    icon: "/icons/nav-insights.svg",  disabled: true },
 ];
 
 const navOps: NavEntry[] = [
@@ -89,29 +90,108 @@ function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean 
 
 export default function Sidebar() {
   // null = not yet measured (SSR); useLayoutEffect fires synchronously before paint
-  const [width, setWidth] = useState<number | null>(null);
+  const [vw, setVw] = useState<number | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [userCollapsed, setUserCollapsed] = useState(false);
+  const pathname = usePathname();
 
   useLayoutEffect(() => {
-    const update = () => setWidth(sidebarWidthForVw(window.innerWidth));
+    setUserCollapsed(localStorage.getItem("fleetops-sidebar-collapsed") === "1");
+    const update = () => setVw(window.innerWidth);
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const collapsed = width !== null && width <= 60;
+  const toggleCollapsed = () => {
+    const apply = () =>
+      flushSync(() =>
+        setUserCollapsed((c) => {
+          localStorage.setItem("fleetops-sidebar-collapsed", c ? "0" : "1");
+          return !c;
+        })
+      );
+    // Animate via the View Transitions API when available — the browser
+    // snapshots both states, tweens the bounds and crossfades the content
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => void };
+    if (doc.startViewTransition) doc.startViewTransition(apply);
+    else apply();
+  };
+
+  // Topbar hamburger dispatches this event
+  useEffect(() => {
+    const toggle = () => setMobileOpen((o) => !o);
+    window.addEventListener("fleetops:nav-toggle", toggle);
+    return () => window.removeEventListener("fleetops:nav-toggle", toggle);
+  }, []);
+
+  // Close drawer on navigation
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  // Close drawer on Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
+
+  const isMobile = vw !== null && vw < 768;
+  // 768–1279: always icon rail; ≥1280: rail when the user collapsed it
+  const collapsed = vw !== null && !isMobile && (vw < 1280 || userCollapsed);
+  const width = vw === null ? null : collapsed ? 56 : sidebarWidthForVw(vw);
 
   return (
+    <>
+    {isMobile && (
+      <div
+        className="sidebar-overlay"
+        data-open={mobileOpen || undefined}
+        onClick={() => setMobileOpen(false)}
+      />
+    )}
     <aside
-      className="sidebar-root shrink-0 bg-canvas border-r border-ink-04 flex flex-col py-5"
-      style={width !== null ? { width } : undefined}
+      className={`sidebar-root shrink-0 bg-canvas border-r border-ink-04 flex flex-col py-5 ${mobileOpen ? "sidebar-open" : ""}`}
+      style={!isMobile && width !== null ? { width } : undefined}
     >
       {/* Brand */}
       <div className={`flex items-center ${collapsed ? "justify-center px-2" : "justify-between px-4"}`}>
-        <img src="/icons/logo.png" alt="Fleetops" className={collapsed ? "h-5 w-auto" : "h-[18px] w-auto"} />
+        {collapsed
+          ? <img src="/icons/logo-mark.svg" alt="Fleetops" className="w-[18px] h-[18px]" />
+          : (
+            <>
+              <img src="/icons/logo-light.svg" alt="Fleetops" className="logo-light h-[18px] w-auto" />
+              <img src="/icons/logo-dark.svg" alt="Fleetops" className="logo-dark h-[18px] w-auto" />
+            </>
+          )
+        }
         {!collapsed && (
-          <img src="/icons/skip-forward-mini-fill.svg" alt="Collapse sidebar" className="w-4 h-4 cursor-pointer icon-adaptive" />
+          <img
+            src="/icons/skip-forward-mini-fill.svg"
+            alt="Collapse sidebar"
+            title="Collapse sidebar"
+            className="w-4 h-4 cursor-pointer icon-adaptive"
+            onClick={() => (isMobile ? setMobileOpen(false) : toggleCollapsed())}
+          />
         )}
       </div>
+
+      {/* Expand control — only when the user collapsed it on desktop */}
+      {collapsed && vw !== null && vw >= 1280 && (
+        <button
+          onClick={toggleCollapsed}
+          title="Expand sidebar"
+          aria-label="Expand sidebar"
+          className="mx-auto mt-4 w-7 h-7 rounded-lg bg-surface border border-ink-04 inline-flex items-center justify-center cursor-pointer hover:bg-ink-04 transition-colors"
+        >
+          <img
+            src="/icons/skip-forward-mini-fill.svg"
+            alt=""
+            className="w-3.5 h-3.5 icon-adaptive"
+            style={{ transform: "rotate(180deg)" }}
+          />
+        </button>
+      )}
 
       {/* Search */}
       {!collapsed && (
@@ -157,5 +237,6 @@ export default function Sidebar() {
         </div>
       </nav>
     </aside>
+    </>
   );
 }

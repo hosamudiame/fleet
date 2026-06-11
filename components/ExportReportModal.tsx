@@ -25,7 +25,7 @@ const INCLUDES  = [
 
 const FLEET_VEHICLES = ["/icons/TRK-001.png", "/icons/SCT-029.png", "/icons/TRK-009.png", "/icons/CAR-092.png"];
 
-export default function ExportReportModal() {
+export default function ExportReportModal({ menuItem = false }: { menuItem?: boolean } = {}) {
   const [open,      setOpen]      = useState(false);
   const [format,    setFormat]    = useState<string>("PDF");
   const [range,     setRange]     = useState<string>("Today");
@@ -60,7 +60,13 @@ export default function ExportReportModal() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} onMouseEnter={handleHover} className="btn">
+      <button
+        onClick={() => setOpen(true)}
+        onMouseEnter={handleHover}
+        className={menuItem
+          ? "w-full bg-transparent border-none flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium tracking-[-0.004em] text-ink hover:bg-canvas cursor-pointer text-left"
+          : "btn"}
+      >
         <span style={{ display: "inline-flex" }}>
           <svg viewBox="0 0 14 14" fill="none" width="14" height="14" style={{ overflow: "visible" }}>
             {/* Tray base — stays still */}
@@ -84,10 +90,10 @@ export default function ExportReportModal() {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
+          className="modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
-          <div className="max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>
+          <div className="modal-shell max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>
 
             {/* Head */}
             <div className="px-4 pt-6 pb-5 flex items-start justify-between gap-3 border-b border-ink-04 shrink-0">
@@ -200,7 +206,7 @@ export default function ExportReportModal() {
 
       {toast && (
         <div
-          className="fixed top-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 px-5 overflow-hidden"
+          className="app-toast fixed top-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 px-5 overflow-hidden"
           style={{ height: 52, background: "#037847", animation: "banner-slide 0.35s cubic-bezier(0.22,1,0.36,1) both" }}
         >
           {/* Road scene */}
@@ -238,7 +244,7 @@ export default function ExportReportModal() {
               <path d="M3.5 9l4 4L14.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="text-[13px] font-semibold text-white tracking-[-0.008em]">Report exported successfully</span>
-            <span className="text-[13px] font-normal tracking-[-0.004em]" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <span className="toast-desc text-[13px] font-normal tracking-[-0.004em]" style={{ color: "rgba(255,255,255,0.7)" }}>
               — Your {format} report is ready to download.
             </span>
           </div>

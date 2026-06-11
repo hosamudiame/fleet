@@ -100,7 +100,7 @@ const SelectBox = ({ placeholder }: { placeholder: string }) => (
 );
 
 const BulkBanner = ({ title, sub, onUpload }: { title: string; sub: string; onUpload: () => void }) => (
-  <div className="flex items-center gap-3.5 p-3.5 border border-[rgba(255,146,86,0.2)] bg-[rgba(255,146,86,0.06)] rounded-[14px]">
+  <div className="bulk-banner flex items-center gap-3.5 p-3.5 border border-[rgba(255,146,86,0.2)] bg-[rgba(255,146,86,0.06)] rounded-[14px]">
     <span className="w-[42px] h-[42px] rounded-[10px] bg-surface inline-flex items-center justify-center shrink-0">
       <img src="/icons/document-filled.svg" alt="" className="w-[22px] h-[22px]" />
     </span>
@@ -136,7 +136,7 @@ const SaveAnother = ({ checked, onToggle }: { checked: boolean; onToggle: () => 
 function PickerScreen({ onSelect }: { onSelect: (s: Screen) => void }) {
   return (
     <div className="px-4 py-6 overflow-auto flex flex-col gap-5">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="modal-grid-2 grid grid-cols-2 gap-4">
         {[
           {
             id: "new-shipment" as Screen,
@@ -187,7 +187,7 @@ function NewShipmentScreen({ onUpload, onClose, onSuccess }: { onUpload: () => v
           sub="Upload a CSV to add multiple shipments at once"
           onUpload={onUpload}
         />
-        <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+        <div className="modal-grid-2 grid grid-cols-2 gap-x-5 gap-y-4">
           <Field label="Reference ID"><Input placeholder="NDI-O93 (Auto generated)" /></Field>
           <Field label="Cargo type" req><SelectBox placeholder="Select cargo" /></Field>
           <Field label="Origin" req><Input placeholder="Select origin" /></Field>
@@ -219,7 +219,7 @@ function AddVehicleScreen({ onUpload, onClose, onSuccess }: { onUpload: () => vo
           sub="Upload PDF or photo to auto-fill most fields"
           onUpload={onUpload}
         />
-        <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+        <div className="modal-grid-2 grid grid-cols-2 gap-x-5 gap-y-4">
           <Field label="Vehicle ID" req><Input placeholder="e.g. TRK-069 (Auto generated)" /></Field>
           <Field label="Vehicle type" req><SelectBox placeholder="Select type" /></Field>
           <Field label="Plate number" req><Input placeholder="e.g. LAG-234-XY" /></Field>
@@ -417,7 +417,7 @@ function UploadReviewScreen({ onClose, onSuccess }: { onClose: () => void; onSuc
                 </button>
               </div>
             </div>
-            <div className="p-4 grid grid-cols-2 gap-x-5 gap-y-4">
+            <div className="modal-grid-2 p-4 grid grid-cols-2 gap-x-5 gap-y-4">
               {doc.fields.map((f) => (
                 <div key={f.label} className="flex flex-col gap-2">
                   <label className="text-sm font-medium tracking-[-0.008em]">{f.label}</label>
@@ -450,7 +450,7 @@ function UploadReviewScreen({ onClose, onSuccess }: { onClose: () => void; onSuc
 const FLEET_VEHICLES = ["/icons/TRK-001.png", "/icons/SCT-029.png", "/icons/TRK-009.png", "/icons/CAR-092.png"];
 
 /* -- Main component -------------------------------------- */
-export default function AddNewModal({ initialScreen }: { initialScreen?: Screen } = {}) {
+export default function AddNewModal({ initialScreen, menuItem = false }: { initialScreen?: Screen; menuItem?: boolean } = {}) {
   const [screen,  setScreen]  = useState<Screen | null>(null);
   const [toast,   setToast]   = useState<string | null>(null);
   const [vehicle, setVehicle] = useState(FLEET_VEHICLES[0]);
@@ -479,17 +479,28 @@ export default function AddNewModal({ initialScreen }: { initialScreen?: Screen 
 
   return (
     <>
-      <button onClick={open} className="btn btn-primary">
-        <img src="/icons/add-new.svg" alt="" className="w-3.5 h-3.5" />
+      <button
+        onClick={open}
+        className={menuItem
+          ? "w-full bg-transparent border-none flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium tracking-[-0.004em] text-ink hover:bg-canvas cursor-pointer text-left"
+          : "btn btn-primary"}
+      >
+        {menuItem ? (
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5 shrink-0">
+            <path d="M7 2.5v9M2.5 7h9" strokeLinecap="round"/>
+          </svg>
+        ) : (
+          <img src="/icons/plus-circle.svg" alt="" className="w-3.5 h-3.5" />
+        )}
         {initialScreen === "add-vehicle" ? "Add vehicle" : "Add new"}
       </button>
 
       {screen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
+          className="modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
           onClick={(e) => { if (e.target === e.currentTarget) close(); }}
         >
-          <div className="max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>
+          <div className="modal-shell max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>
             {screen === "add-new" ? (
               <>
                 <ModalHead title="Add new" sub="What would you like to create?" onClose={close} />
@@ -516,7 +527,7 @@ export default function AddNewModal({ initialScreen }: { initialScreen?: Screen 
 
       {toast && (
         <div
-          className="fixed top-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 px-5 overflow-hidden"
+          className="app-toast fixed top-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 px-5 overflow-hidden"
           style={{ height: 52, background: "#037847", animation: "banner-slide 0.35s cubic-bezier(0.22,1,0.36,1) both" }}
         >
           {/* Road scene */}
@@ -561,7 +572,7 @@ export default function AddNewModal({ initialScreen }: { initialScreen?: Screen 
               <path d="M3.5 9l4 4L14.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="text-[13px] font-semibold text-white tracking-[-0.008em]">{toast}</span>
-            <span className="text-[13px] font-normal tracking-[-0.004em]" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <span className="toast-desc text-[13px] font-normal tracking-[-0.004em]" style={{ color: "rgba(255,255,255,0.7)" }}>
               {toast.startsWith("Shipment") ? "— Your shipment has been added to the system." : toast.startsWith("Vehicle") ? "— Your vehicle has been registered in the fleet." : "— All vehicles have been saved to the system."}
             </span>
           </div>

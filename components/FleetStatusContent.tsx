@@ -6,6 +6,7 @@ import Topbar from "@/components/Topbar";
 import CountUp from "@/components/CountUp";
 import ExportReportModal from "@/components/ExportReportModal";
 import AddNewModal from "@/components/AddNewModal";
+import ActionsOverflow from "@/components/ActionsOverflow";
 
 // --- Types --------------------------------------------------------------
 type VehStatus = "transit" | "delayed" | "idle" | "upcoming";
@@ -214,7 +215,7 @@ function FilterDropdown({ icon, prefix, defaultLabel, value, items, onSelect, se
         className={`h-[38px] px-3.5 inline-flex items-center gap-1.5 border rounded-[12px] text-[12px] font-medium tracking-[-0.004em] cursor-pointer select-none ${open ? "border-orange" : "border-ink-06"}`}
         style={{ background:"var(--color-canvas)", ...btnStyle }}
       >
-        <span className="inline-flex items-center justify-center w-3.5 h-3.5 shrink-0 text-ink">{icon}</span>
+        <span className="filter-icon inline-flex items-center justify-center w-3.5 h-3.5 shrink-0 text-ink">{icon}</span>
         {prefix && <span className="text-ink">{prefix}</span>}
         <span className="text-ink whitespace-nowrap">{defaultLabel ?? "All"}</span>
         {isActive && <span className="w-1.5 h-1.5 rounded-full bg-orange shrink-0" />}
@@ -374,7 +375,7 @@ function VehicleCard({ v }: { v: FleetVehicle }) {
 function TableView({ vehicles, fillerCount }: { vehicles: FleetVehicle[]; fillerCount: number }) {
   const DOT: Record<VehStatus, string> = { transit:"#0ab86d", delayed:"#fd514e", idle:"#ee9b32", upcoming:"#667085" };
   return (
-    <div>
+    <div className="fleet-table-scroll">
       <table className="fleet-status-table w-full border-collapse">
         <thead>
           <tr>
@@ -520,14 +521,18 @@ function MapView({ vehicles }: { vehicles: FleetVehicle[] }) {
         {vehicles.map(v => {
           const isActive = activeId === v.id;
           const lNum = parseFloat(v.mapPos.l);
+          const tNum = parseFloat(v.mapPos.t);
           const showRight = lNum <= 55;
-          const popupStyle: React.CSSProperties = showRight
-            ? { left: "38px", top: 0 }
-            : { right: "38px", top: 0 };
+          const showBelow = tNum <= 50;
+          const popupStyle: React.CSSProperties = {
+            ...(showRight ? { left: "38px" } : { right: "38px" }),
+            ...(showBelow ? { top: 0 } : { bottom: 0 }),
+          };
           return (
             <div key={v.id} className="absolute" style={{ left:v.mapPos.l, top:v.mapPos.t, transform:"translate(-50%,-50%)", zIndex: isActive ? 20 : 10 }}
               onMouseEnter={() => setHoveredId(v.id)}
               onMouseLeave={() => setHoveredId(null)}
+              onClick={() => setSelectedId(id => id === v.id ? null : v.id)}
             >
               <div style={{ width:30, height:30, borderRadius:"50%", background:PIN_BG[v.status], boxShadow:"0 8px 18px rgba(0,0,0,0.18)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transform: isActive ? "scale(1.15)" : "scale(1)", transition:"transform 0.1s" }}>
                 <span style={{ color:"#fff", display:"inline-flex" }}>
@@ -535,7 +540,7 @@ function MapView({ vehicles }: { vehicles: FleetVehicle[] }) {
                 </span>
               </div>
               {isActive && (
-                <div className="absolute z-30" style={popupStyle}>
+                <div className="fleet-hover-popup absolute z-30" style={popupStyle}>
                   <div className="relative">
                     <MapPopup v={v} />
                     {/* Arrow pointing toward the pin */}
@@ -544,7 +549,7 @@ function MapView({ vehicles }: { vehicles: FleetVehicle[] }) {
                       width: 10,
                       height: 10,
                       background: "var(--canvas)",
-                      top: 18,
+                      ...(showBelow ? { top: 18 } : { bottom: 18 }),
                       transform: "rotate(45deg)",
                       ...(showRight
                         ? { left: -5,  borderBottom: "1px solid var(--ink-06)", borderLeft:  "1px solid var(--ink-06)" }
@@ -557,6 +562,42 @@ function MapView({ vehicles }: { vehicles: FleetVehicle[] }) {
             </div>
           );
         })}
+
+        {/* Mobile tap popup (<768px) */}
+        {(() => {
+          const sel = vehicles.find(v => v.id === selectedId);
+          if (!sel) return null;
+          return (
+            <div className="fleet-map-mobile-popup">
+              <div className="mobile-map-popup-head">
+                <span className="mobile-map-order">
+                  <span className="mobile-popup-dot" style={{ background: PIN_BG[sel.status] }}>
+                    <VehicleTypeIcon type={sel.vehType} className="w-[9px] h-[9px]" />
+                  </span>
+                  {sel.id}
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className={`mobile-map-status ${STATUS_CLS[sel.status]}`}>{STATUS_LABEL[sel.status]}</span>
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    aria-label="Close vehicle details"
+                    className="w-6 h-6 rounded-full bg-canvas border border-ink-06 inline-flex items-center justify-center cursor-pointer shrink-0"
+                  >
+                    <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4" className="w-2.5 h-2.5">
+                      <path d="M2 2l6 6M8 2L2 8"/>
+                    </svg>
+                  </button>
+                </span>
+              </div>
+              <div className="mobile-map-popup-body">
+                <span>Driver</span><strong>{sel.driver}</strong>
+                <span>Location</span><strong><em>{sel.from}</em> <span>→</span> {sel.to}</strong>
+                <span>Last check in</span><strong>{sel.lastCheckIn}</strong>
+                <span>Fuel</span><strong style={{ color: loadColor(sel.fuel) }}>{sel.fuel}%</strong>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Legend */}
         <div className="absolute left-3.5 bottom-3.5 z-10 flex gap-1 bg-surface border border-ink-06 rounded-full px-2 py-1 text-[10px] font-medium tracking-[-0.004em] shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
@@ -644,6 +685,21 @@ export default function FleetStatusContent() {
   const [search,       setSearch]       = useState("");
   const [cardPage,     setCardPage]     = useState(1);
   const [tablePage,    setTablePage]    = useState(1);
+  const [filtersOpen,  setFiltersOpen]  = useState(false);
+  const filterWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const h = (e: MouseEvent) => {
+      if (filterWrapRef.current && !filterWrapRef.current.contains(e.target as Node)) setFiltersOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [filtersOpen]);
+
+  const activeFilterCount =
+    [statusFilter, typeFilter, regionFilter].filter(v => v !== "all").length +
+    (dateFilter !== "Today" ? 1 : 0);
 
   const filtered = VEHICLES.filter(v => {
     if (statusFilter !== "all" && v.status !== statusFilter) return false;
@@ -679,7 +735,7 @@ export default function FleetStatusContent() {
       <div className="p-4 flex flex-col gap-4">
 
         {/* Row head */}
-        <div className="flex items-end justify-between gap-6">
+        <div className="page-head flex items-end justify-between gap-6">
           <div>
             <h1 className="m-0 text-[18px] font-medium leading-none tracking-[-0.008em]">You have 64 vehicles across 4 zones</h1>
             <div className="op-ai-banner mt-3 inline-flex items-center gap-1.5 rounded-[6px] px-1.5 py-[3px] text-orange-deep text-xs font-normal leading-none tracking-[-0.008em]" style={{ background:"rgba(255,146,86,0.20)" }}>
@@ -689,8 +745,14 @@ export default function FleetStatusContent() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
-            <ExportReportModal />
-            <AddNewModal initialScreen="add-vehicle" />
+            <div className="page-actions-full">
+              <ExportReportModal />
+              <AddNewModal initialScreen="add-vehicle" />
+            </div>
+            <ActionsOverflow>
+              <ExportReportModal menuItem />
+              <AddNewModal menuItem initialScreen="add-vehicle" />
+            </ActionsOverflow>
           </div>
         </div>
 
@@ -701,13 +763,33 @@ export default function FleetStatusContent() {
         <div className="bg-surface border border-ink-06 rounded-xl flex flex-col overflow-hidden">
 
           {/* Filter row */}
-          <div className="flex items-center gap-2.5 px-4 py-3 border-b border-ink-06" style={{ position:"relative", zIndex:20 }}>
+          <div className="fleet-filter-row flex items-center gap-2.5 px-4 py-3 border-b border-ink-06" style={{ position:"relative", zIndex:20 }}>
             {/* Search */}
             <div className="flex items-center gap-2 border border-ink-06 px-3.5 shrink-0" style={{ width:"160px", height:"38px", borderRadius:"12px", background:"var(--search-bg)" }}>
               <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" className="w-3.5 h-3.5 text-ink-30 shrink-0"><circle cx="6" cy="6" r="4.5"/><path d="M10 10l3 3"/></svg>
               <input value={search} onChange={e => { setSearch(e.target.value); setTablePage(1); }} placeholder="Search vehicle, driver, plate, zone" className="border-none outline-none bg-transparent text-[12px] font-medium text-ink placeholder:text-ink-40 flex-1 min-w-0" />
             </div>
 
+            {/* Single "Filter" toggle — shown ≤1023px only */}
+            <div ref={filterWrapRef} className="filter-collapse">
+            <button
+              onClick={() => setFiltersOpen(o => !o)}
+              className={`filter-toggle-btn h-[38px] px-3.5 items-center gap-1.5 border rounded-[12px] text-[12px] font-medium tracking-[-0.004em] cursor-pointer select-none ${filtersOpen ? "border-orange" : "border-ink-06"}`}
+              style={{ background:"var(--color-canvas)" }}
+            >
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" className="w-3.5 h-3.5 shrink-0 text-ink">
+                <path d="M1.5 2.5h11L8.3 7.6v3.3l-2.6 1.6V7.6L1.5 2.5z" strokeLinejoin="round"/>
+              </svg>
+              <span className="text-ink whitespace-nowrap">Filter</span>
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-orange text-white text-[10px] font-semibold leading-none">{activeFilterCount}</span>
+              )}
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-3 h-3 text-ink-40 transition-transform" style={{ transform: filtersOpen ? "rotate(180deg)" : "rotate(0deg)" }}>
+                <path d="M3 5l4 4 4-4"/>
+              </svg>
+            </button>
+
+            <div className={`filter-group ${filtersOpen ? "filter-group-open" : ""}`}>
             <FilterDropdown
               icon={<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="1.5" y="2.5" width="11" height="10" rx="1"/><path d="M1.5 5h11M4 1.2v2.4M10 1.2v2.4"/></svg>}
               value={dateFilter} items={DATE_ITEMS} onSelect={setDateFilter}
@@ -729,9 +811,11 @@ export default function FleetStatusContent() {
               prefix="Status: " value={statusFilter} items={STATUS_ITEMS} onSelect={v => { setStatusFilter(v); setTablePage(1); }}
               alignRight
             />
+            </div>
+            </div>
 
             {/* View switcher */}
-            <div className="ml-auto flex items-center bg-canvas border border-ink-06 rounded-[10px] p-[3px] gap-0.5">
+            <div className="view-switcher ml-auto flex items-center bg-canvas border border-ink-06 rounded-[10px] p-[3px] gap-0.5">
               {([
                 { key:"table" as ViewMode, label:"Table", icon: (
                   <svg viewBox="0 0 14 14" fill="none" className="w-3.5 h-3.5 shrink-0"><path d="M4.58374 8.83325V12.1663H2.33374C1.89171 12.1663 1.46759 11.9905 1.15503 11.678C0.842647 11.3655 0.666834 10.9421 0.666748 10.5002V8.83325H4.58374ZM9.24976 8.83325V12.1663H4.74976V8.83325H9.24976ZM13.3337 8.83325V10.5002C13.3337 10.942 13.1577 11.3655 12.8455 11.678C12.5329 11.9905 12.1088 12.1663 11.6667 12.1663H9.41675V8.83325H13.3337ZM4.58374 5.33325V8.66626H0.666748V5.33325H4.58374ZM9.24976 5.33325V8.66626H4.74976V5.33325H9.24976ZM13.3337 5.33325V8.66626H9.41675V5.33325H13.3337ZM4.58374 1.83325V5.16626H0.666748V3.50024L0.674561 3.33521C0.712434 2.95365 0.881527 2.59504 1.15503 2.32153C1.46759 2.00897 1.89171 1.83325 2.33374 1.83325H4.58374ZM9.24976 1.83325V5.16626H4.74976V1.83325H9.24976ZM11.6667 1.83325C12.1088 1.83325 12.5329 2.00897 12.8455 2.32153C13.1579 2.63408 13.3337 3.05829 13.3337 3.50024V5.16626H9.41675V1.83325H11.6667Z" stroke="currentColor"/></svg>
@@ -743,9 +827,9 @@ export default function FleetStatusContent() {
                   <svg viewBox="0 0 14 14" fill="none" className="w-3.5 h-3.5 shrink-0"><path fillRule="evenodd" clipRule="evenodd" d="M9.15152 1.10182C9.04485 1.04849 8.92235 1.03765 8.80818 1.07182L5.25 2.18765L1.84818 1.10182C1.49485 0.987653 1.16668 1.25265 1.16668 1.61682V11.0835C1.16668 11.3302 1.32418 11.5485 1.55818 11.6252L5.05818 12.7585C5.18485 12.7994 5.31518 12.7994 5.44185 12.7585L8.75002 11.7027L12.1518 12.8977C12.5052 13.0119 12.8333 12.7469 12.8333 12.3827V2.91602C12.8333 2.66935 12.6758 2.45102 12.4418 2.37435L9.15152 1.10182ZM8.16668 2.46932V10.6318L5.83335 11.3652V3.20268L8.16668 2.46932ZM4.66668 3.35602V11.4068L2.33335 10.6735V2.62268L4.66668 3.35602ZM9.33335 10.5277V2.53435L11.6667 3.42185V11.4127L9.33335 10.5277Z" fill="currentColor"/></svg>
                 )},
               ]).map(opt => (
-                <button key={opt.key} onClick={() => setView(opt.key)} className={`inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-lg text-[12px] font-medium tracking-[-0.004em] cursor-pointer ${view === opt.key ? "bg-orange text-white" : "text-ink-40 hover:bg-canvas"}`}>
+                <button key={opt.key} onClick={() => setView(opt.key)} title={opt.label} className={`inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-lg text-[12px] font-medium tracking-[-0.004em] cursor-pointer ${view === opt.key ? "bg-orange text-white" : "text-ink-40 hover:bg-canvas"}`}>
                   {opt.icon}
-                  {opt.label}
+                  <span className="view-switch-label">{opt.label}</span>
                 </button>
               ))}
             </div>
@@ -769,7 +853,7 @@ export default function FleetStatusContent() {
               </div>
 
               {/* Pagination row */}
-              <div className="flex items-center justify-between">
+              <div className="pagination-row flex items-center justify-between">
                 <span className="text-[12px] font-medium pl-3" style={{ color:"var(--ink)" }}>
                   Showing {(cardPage - 1) * CARDS_PER_PAGE + 1}–{Math.min(cardPage * CARDS_PER_PAGE, filtered.length)} of {filtered.length} entries
                 </span>
@@ -797,7 +881,7 @@ export default function FleetStatusContent() {
           {filtered.length > 0 && view === "table" && (
             <>
               <TableView vehicles={pagedVehicles} fillerCount={TABLE_ROWS_PER_PAGE - pagedVehicles.length} />
-              <div className="flex items-center justify-between px-3 py-3 border-t border-ink-04">
+              <div className="pagination-row flex items-center justify-between px-3 py-3 border-t border-ink-04">
                 <span className="text-[12px] font-medium pl-3" style={{ color:"var(--ink)" }}>
                   Showing {Math.min((tablePage - 1) * TABLE_ROWS_PER_PAGE + 1, filtered.length)}–{Math.min(tablePage * TABLE_ROWS_PER_PAGE, filtered.length)} of {filtered.length} entries
                 </span>

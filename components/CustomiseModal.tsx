@@ -20,10 +20,12 @@ export default function CustomiseModal({
   kpis:     externalKpis    = DEFAULT_KPIS,
   widgets:  externalWidgets = DEFAULT_WIDGETS,
   onSave,
+  menuItem = false,
 }: {
   kpis?:    string[];
   widgets?: string[];
   onSave?:  (kpis: string[], widgets: string[]) => void;
+  menuItem?: boolean;
 }) {
   const [open,        setOpen]        = useState(false);
   const [gearHovered, setGearHovered] = useState(false);
@@ -78,7 +80,9 @@ export default function CustomiseModal({
         onClick={handleOpen}
         onMouseEnter={() => setGearHovered(true)}
         onMouseLeave={() => setGearHovered(false)}
-        className="btn"
+        className={menuItem
+          ? "w-full bg-transparent border-none flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium tracking-[-0.004em] text-ink hover:bg-canvas cursor-pointer text-left"
+          : "btn"}
       >
         <img
           src="/icons/customise.svg"
@@ -94,10 +98,10 @@ export default function CustomiseModal({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
+          className="modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
           onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
         >
-          <div className="max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>
+          <div className="modal-shell max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>
 
             {/* Head */}
             <div className="px-4 pt-6 pb-5 flex items-start justify-between gap-3 border-b border-ink-04 shrink-0">
@@ -127,7 +131,7 @@ export default function CustomiseModal({
                 </button>
 
                 {/* KPI row */}
-                <div className="grid grid-cols-4 gap-2.5">
+                <div className="modal-grid-4 grid grid-cols-4 gap-2.5">
                   {kpis.map((kpi, i) => (
                     <div
                       key={i}
@@ -229,7 +233,7 @@ export default function CustomiseModal({
       )}
       {toast && (
         <div
-          className="fixed top-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 px-5 overflow-hidden"
+          className="app-toast fixed top-0 left-0 right-0 z-[200] flex items-center justify-between gap-4 px-5 overflow-hidden"
           style={{ height: 52, background: "#037847", animation: "banner-slide 0.35s cubic-bezier(0.22,1,0.36,1) both" }}
         >
           {/* Road scene */}

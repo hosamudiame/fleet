@@ -199,7 +199,7 @@ export default function DriverProfileContent({ driverId }: { driverId: string })
       <div className="p-4 flex flex-col gap-4">
 
         {/* ── Hero card ─────────────────────────────────────────────────── */}
-        <div className="bg-surface border border-ink-06 rounded-xl p-5 flex items-center gap-6">
+        <div className="driver-hero bg-surface border border-ink-06 rounded-xl p-5 flex items-center gap-6">
           {/* Avatar */}
           <div className="relative shrink-0">
             {driver.avatar
@@ -229,7 +229,7 @@ export default function DriverProfileContent({ driverId }: { driverId: string })
           <div className="w-px self-stretch bg-ink-06 mx-2 shrink-0" />
 
           {/* Stats strip */}
-          <div className="flex items-center gap-8 flex-1">
+          <div className="driver-hero-stats flex items-center gap-8 flex-1">
             {[
               { label: "Vehicle",      value: driver.vehicle },
               { label: "Total trips",  value: driver.trips   },
@@ -263,7 +263,7 @@ export default function DriverProfileContent({ driverId }: { driverId: string })
         </div>
 
         {/* ── KPI strip ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="driver-kpi-grid grid grid-cols-4 gap-3">
           {kpis.map(k => (
             <div key={k.label} className="bg-surface border border-ink-06 rounded-xl px-5 py-4 flex flex-col gap-1.5">
               <span className="text-[11px] font-medium text-ink-40 tracking-[-0.004em]">{k.label}</span>
@@ -297,7 +297,7 @@ export default function DriverProfileContent({ driverId }: { driverId: string })
 
           {/* ── Trips ─────────────────────────────────────────────────── */}
           {activeSection === "trips" && (
-            <div className="flex flex-col">
+            <div className="fleet-table-scroll flex flex-col">
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
@@ -338,8 +338,8 @@ export default function DriverProfileContent({ driverId }: { driverId: string })
               {compList.map(c => {
                 const s = COMP_CLS[c.cls];
                 return (
-                  <div key={c.label} className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-ink-06 bg-canvas">
-                    <div className="flex items-center gap-3">
+                  <div key={c.label} className="comp-row flex items-center justify-between px-4 py-3.5 rounded-xl border border-ink-06 bg-canvas">
+                    <div className="flex items-center gap-3 min-w-0">
                       <span className="w-7 h-7 rounded-lg inline-flex items-center justify-center shrink-0" style={{ background: s.bg }}>
                         <ShieldIcon />
                       </span>
@@ -348,7 +348,7 @@ export default function DriverProfileContent({ driverId }: { driverId: string })
                         <span className="text-[11px] font-medium text-ink-40 tracking-[-0.004em]">{c.detail}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="comp-row-right flex items-center gap-3">
                       <span className="text-[11px] font-medium text-ink-40">{c.expires}</span>
                       <span className="inline-flex items-center px-2.5 h-5 rounded-full text-[11px] font-medium" style={{ background: s.bg, color: s.text }}>
                         <span className="w-1.5 h-1.5 rounded-full mr-1 shrink-0" style={{ background: s.dot }} />
