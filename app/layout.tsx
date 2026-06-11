@@ -12,9 +12,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const previewTitle = "Fleetops | Live Fleet Command Center";
+const previewDescription =
+  "Run vehicles, drivers, routes, and exceptions from one sharp operations desk.";
+
 export const metadata: Metadata = {
-  title: "Fleetops",
-  description: "Fleet operations management dashboard",
+  title: previewTitle,
+  description: previewDescription,
+  applicationName: "Fleetops",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: previewTitle,
+    description: previewDescription,
+    siteName: "Fleetops",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: previewTitle,
+    description: previewDescription,
+  },
 };
 
 function ThemeScript() {

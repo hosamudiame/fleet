@@ -1,6 +1,9 @@
 import Sidebar from "@/components/Sidebar";
 
-export const metadata = { title: "Overview — Fleetops" };
+export const metadata = {
+  title: "Fleetops | Live Fleet Command Center",
+  description: "Run vehicles, drivers, routes, and exceptions from one sharp operations desk.",
+};
 
 export default function DashboardLayout({
   children,
