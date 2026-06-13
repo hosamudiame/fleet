@@ -90,13 +90,13 @@ export default function ExportReportModal({ menuItem = false }: { menuItem?: boo
 
       {open && (
         <div
-          className="modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
+          className="export-modal-wrap modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
           <div className="modal-shell max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>
 
             {/* Head */}
-            <div className="px-4 pt-6 pb-5 flex items-start justify-between gap-3 border-b border-ink-04 shrink-0">
+            <div className="modal-head px-4 pt-6 pb-5 flex items-start justify-between gap-3 border-b border-ink-04 shrink-0">
               <div className="flex flex-col gap-1.5">
                 <h2 className="m-0 text-[18px] font-medium leading-none tracking-[-0.002em]">Export report</h2>
                 <span className="text-sm font-normal leading-none tracking-[-0.004em] text-ink-40">Download a snapshot of your fleet data</span>
@@ -105,7 +105,7 @@ export default function ExportReportModal({ menuItem = false }: { menuItem?: boo
             </div>
 
             {/* Body */}
-            <div className="px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
+            <div className="modal-body px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
 
               {/* Format */}
               <div>
@@ -182,7 +182,7 @@ export default function ExportReportModal({ menuItem = false }: { menuItem?: boo
             </div>
 
             {/* Footer */}
-            <div className="border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
+            <div className="modal-foot border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
               <button
                 onClick={() => setOpen(false)}
                 className="h-11 rounded-xl border border-ink-04 bg-surface text-ink text-sm font-medium tracking-[-0.008em] cursor-pointer hover:bg-canvas"

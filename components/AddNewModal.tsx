@@ -36,7 +36,7 @@ const BackBtn = ({ onBack }: { onBack: () => void }) => (
 const ModalHead = ({
   title, sub, onClose, onBack,
 }: { title: string; sub?: string; onClose: () => void; onBack?: () => void }) => (
-  <div className="px-4 pt-6 pb-5 flex items-start justify-between gap-3 border-b border-ink-04 shrink-0">
+  <div className="modal-head px-4 pt-6 pb-5 flex items-start justify-between gap-3 border-b border-ink-04 shrink-0">
     <div className="flex items-center gap-2 min-w-0">
       {onBack && <BackBtn onBack={onBack} />}
       <div className="flex flex-col gap-1.5 min-w-0">
@@ -135,7 +135,7 @@ const SaveAnother = ({ checked, onToggle }: { checked: boolean; onToggle: () => 
 /* -- Screens --------------------------------------------- */
 function PickerScreen({ onSelect }: { onSelect: (s: Screen) => void }) {
   return (
-    <div className="px-4 py-6 overflow-auto flex flex-col gap-5">
+    <div className="modal-body px-4 py-6 overflow-auto flex flex-col gap-5">
       <div className="modal-grid-2 grid grid-cols-2 gap-4">
         {[
           {
@@ -181,7 +181,7 @@ function NewShipmentScreen({ onUpload, onClose, onSuccess }: { onUpload: () => v
   const [saveAnother, setSaveAnother] = useState(false);
   return (
     <>
-      <div className="px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
+      <div className="modal-body px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
         <BulkBanner
           title="Got a manifest or list?"
           sub="Upload a CSV to add multiple shipments at once"
@@ -201,7 +201,7 @@ function NewShipmentScreen({ onUpload, onClose, onSuccess }: { onUpload: () => v
         </div>
         <SaveAnother checked={saveAnother} onToggle={() => setSaveAnother(!saveAnother)} />
       </div>
-      <div className="border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
+      <div className="modal-foot border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
         <MBtn onClick={onClose}>Cancel</MBtn>
         <MBtn primary onClick={onSuccess}>Create shipment</MBtn>
       </div>
@@ -213,7 +213,7 @@ function AddVehicleScreen({ onUpload, onClose, onSuccess }: { onUpload: () => vo
   const [saveAnother, setSaveAnother] = useState(false);
   return (
     <>
-      <div className="px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
+      <div className="modal-body px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
         <BulkBanner
           title="Have the registration document?"
           sub="Upload PDF or photo to auto-fill most fields"
@@ -231,7 +231,7 @@ function AddVehicleScreen({ onUpload, onClose, onSuccess }: { onUpload: () => vo
         </div>
         <SaveAnother checked={saveAnother} onToggle={() => setSaveAnother(!saveAnother)} />
       </div>
-      <div className="border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
+      <div className="modal-foot border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
         <MBtn onClick={onClose}>Cancel</MBtn>
         <MBtn primary onClick={onSuccess}>Create vehicle</MBtn>
       </div>
@@ -242,7 +242,7 @@ function AddVehicleScreen({ onUpload, onClose, onSuccess }: { onUpload: () => vo
 function UploadScreen({ onNext, onClose }: { onNext: () => void; onClose: () => void }) {
   return (
     <>
-      <div className="px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
+      <div className="modal-body px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
         <div className="border border-dashed border-ink-10 rounded-2xl bg-canvas py-12 px-6 flex flex-col items-center gap-3.5 text-center">
           <span className="w-16 h-16 rounded-full bg-[rgba(255,146,86,0.08)] inline-flex items-center justify-center">
             <img src="/icons/upload-filled.svg" alt="" className="w-[32px] h-[32px]" />
@@ -257,7 +257,7 @@ function UploadScreen({ onNext, onClose }: { onNext: () => void; onClose: () => 
           </button>
         </div>
       </div>
-      <div className="border-t border-ink-04 p-[14px_16px] grid grid-cols-1 gap-3 shrink-0">
+      <div className="modal-foot border-t border-ink-04 p-[14px_16px] grid grid-cols-1 gap-3 shrink-0">
         <MBtn onClick={onClose}>Cancel</MBtn>
       </div>
     </>
@@ -289,7 +289,7 @@ function UploadExtractingScreen({ onNext, onClose }: { onNext: () => void; onClo
 
   return (
     <>
-      <div className="px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
+      <div className="modal-body px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
         <div className="border border-dashed border-ink-10 rounded-2xl bg-canvas py-14 px-6 flex flex-col items-center gap-2.5">
           {allDone ? (
             <span className="w-8 h-8 rounded-full bg-green-soft inline-flex items-center justify-center">
@@ -338,7 +338,7 @@ function UploadExtractingScreen({ onNext, onClose }: { onNext: () => void; onClo
           ))}
         </div>
       </div>
-      <div className="border-t border-ink-04 p-[14px_16px] grid grid-cols-1 gap-3 shrink-0">
+      <div className="modal-foot border-t border-ink-04 p-[14px_16px] grid grid-cols-1 gap-3 shrink-0">
         <MBtn primary={allDone} onClick={allDone ? onNext : onClose}>
           {allDone ? "Review extracted data" : "Cancel"}
         </MBtn>
@@ -375,7 +375,7 @@ const REVIEW_DOCS = [
 function UploadReviewScreen({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   return (
     <>
-      <div className="px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
+      <div className="modal-body px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium tracking-[-0.008em]">3 documents added</span>
           <button className="inline-flex items-center gap-1.5 border border-orange rounded-full px-3.5 py-[7px] text-[13px] font-medium text-orange bg-surface cursor-pointer hover:bg-orange hover:text-white">
@@ -439,7 +439,7 @@ function UploadReviewScreen({ onClose, onSuccess }: { onClose: () => void; onSuc
           </div>
         ))}
       </div>
-      <div className="border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
+      <div className="modal-foot border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
         <MBtn onClick={onClose}>Cancel</MBtn>
         <MBtn primary onClick={onSuccess}>Save all</MBtn>
       </div>
@@ -497,7 +497,7 @@ export default function AddNewModal({ initialScreen, menuItem = false }: { initi
 
       {screen && (
         <div
-          className="modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
+          className="addnew-modal-wrap modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
           onClick={(e) => { if (e.target === e.currentTarget) close(); }}
         >
           <div className="modal-shell max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>

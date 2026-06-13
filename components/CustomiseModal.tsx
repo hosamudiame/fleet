@@ -98,13 +98,13 @@ export default function CustomiseModal({
 
       {open && (
         <div
-          className="modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
+          className="customise-modal-wrap modal-overlay-wrap fixed inset-0 z-50 flex items-center justify-center px-5 py-10 bg-black/[0.35] backdrop-blur-[2px]"
           onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
         >
           <div className="modal-shell max-w-full max-h-[calc(100vh-80px)] bg-surface rounded-[24px] flex flex-col overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.18)]" style={{ width: "clamp(580px, calc(100vw - 680px), 700px)" }}>
 
             {/* Head */}
-            <div className="px-4 pt-6 pb-5 flex items-start justify-between gap-3 border-b border-ink-04 shrink-0">
+            <div className="modal-head px-4 pt-6 pb-5 flex items-start justify-between gap-3 border-b border-ink-04 shrink-0">
               <div className="flex flex-col gap-1.5">
                 <h2 className="m-0 text-[18px] font-medium leading-none tracking-[-0.002em]">Customise overview</h2>
                 <span className="text-sm font-normal leading-none tracking-[-0.004em] text-ink-40">Pick what shows in each slot of your dashboard</span>
@@ -120,12 +120,12 @@ export default function CustomiseModal({
             </div>
 
             {/* Body */}
-            <div className="px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
-              <p className="m-0 text-sm font-normal leading-relaxed tracking-[-0.004em] text-ink-60">
+            <div className="modal-body px-4 py-6 overflow-auto flex flex-col gap-5 flex-1">
+              <p className="modal-desc m-0 text-sm font-normal leading-relaxed tracking-[-0.004em] text-ink-60">
                 Tap any tile below to change what it shows. Map and orders table are part of the core layout and can&apos;t be swapped.
               </p>
 
-              <div className="bg-canvas rounded-2xl p-4 flex flex-col gap-3.5">
+              <div className="modal-inner-card bg-canvas rounded-2xl p-4 flex flex-col gap-3.5">
                 <button onClick={reset} className="self-end text-[13px] font-medium tracking-[-0.004em] cursor-pointer bg-transparent border-none p-0 text-ink hover:text-orange">
                   <span className="font-medium">Reset</span> to default
                 </button>
@@ -141,14 +141,14 @@ export default function CustomiseModal({
                           ? "border-orange bg-[rgba(255,146,86,0.03)]"
                           : "border-ink-06 hover:border-orange"].join(" ")}
                     >
-                      <span className="text-[11px] font-normal text-ink-40 tracking-[-0.004em]">KPI {i + 1}</span>
+                      <span className="modal-tile-label text-[11px] font-normal text-ink-40 tracking-[-0.004em]">KPI {i + 1}</span>
                       <span className="text-sm font-medium tracking-[-0.008em] leading-snug">{kpi}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Widget + locked cols */}
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="modal-widget-grid grid grid-cols-2 gap-2.5">
                   {/* Editable widgets */}
                   <div className="flex flex-col gap-2.5">
                     {widgets.map((w, i) => (
@@ -160,7 +160,7 @@ export default function CustomiseModal({
                             ? "border-orange bg-[rgba(255,146,86,0.03)]"
                             : "border-ink-06 hover:border-orange"].join(" ")}
                       >
-                        <span className="text-[11px] font-normal text-ink-40 tracking-[-0.004em]">Widget {i + 1}</span>
+                        <span className="modal-tile-label text-[11px] font-normal text-ink-40 tracking-[-0.004em]">Widget {i + 1}</span>
                         <span className="text-sm font-medium tracking-[-0.008em]">{w}</span>
                       </div>
                     ))}
@@ -174,7 +174,7 @@ export default function CustomiseModal({
                         className={`border border-dashed border-ink-06 rounded-xl p-3.5 flex flex-col justify-between cursor-not-allowed ${l.size}`}
                         style={{ background: "var(--ink-03)" }}
                       >
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-normal text-ink-40">
+                        <span className="modal-tile-label inline-flex items-center gap-1.5 text-[11px] font-normal text-ink-40">
                           <LockIcon /> Locked
                         </span>
                         <span className="text-sm font-medium tracking-[-0.008em] text-ink-40">{l.label}</span>
@@ -213,7 +213,7 @@ export default function CustomiseModal({
             </div>
 
             {/* Footer */}
-            <div className="border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
+            <div className="modal-foot border-t border-ink-04 p-[14px_16px] grid grid-cols-2 gap-3 shrink-0">
               <button
                 onClick={handleClose}
                 className="h-11 rounded-xl border border-ink-04 bg-surface text-ink text-sm font-medium tracking-[-0.008em] cursor-pointer hover:bg-canvas"
@@ -268,7 +268,7 @@ export default function CustomiseModal({
               <path d="M3.5 9l4 4L14.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="text-[13px] font-semibold text-white tracking-[-0.008em]">Dashboard updated</span>
-            <span className="text-[13px] font-normal tracking-[-0.004em]" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <span className="toast-desc text-[13px] font-normal tracking-[-0.004em]" style={{ color: "rgba(255,255,255,0.7)" }}>
               — Your layout changes have been saved.
             </span>
           </div>

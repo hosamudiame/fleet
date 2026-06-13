@@ -385,7 +385,6 @@ body {
 .fleet-table-scroll { overflow-x: auto; }
 
 
-
 /* ── Button base ── */
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1143,6 +1142,66 @@ html[data-theme="dark"] .icon-ink-60 {
   }
   .modal-grid-2 { grid-template-columns: 1fr; }
   .modal-grid-4 { grid-template-columns: repeat(2, 1fr); }
+
+  /* Customise modal → bottom sheet on mobile */
+  .customise-modal-wrap { align-items: flex-end; padding: 0; }
+  .customise-modal-wrap .modal-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 66vh;
+    border-radius: 20px 20px 0 0;
+  }
+  /* Drag-handle pill */
+  .customise-modal-wrap .modal-shell::before {
+    content: '';
+    display: block;
+    flex-shrink: 0;
+    width: 36px; height: 4px;
+    border-radius: 2px;
+    background: var(--ink-10, rgba(0,0,0,0.12));
+    margin: 8px auto 0;
+  }
+  /* Strip all the excess vertical space */
+  .modal-desc { display: none; }
+  .modal-tile-label { display: none !important; }
+  .modal-head { padding-top: 12px !important; padding-bottom: 12px !important; }
+  .modal-foot { padding: 8px 16px 16px !important; }
+  .modal-foot button { height: 38px !important; }
+  .modal-body { padding: 10px 16px !important; gap: 8px !important; }
+
+  .modal-inner-card { padding: 10px !important; gap: 8px !important; }
+  .modal-widget-grid > div > div { min-height: 58px !important; padding: 12px !important; justify-content: center !important; }
+  .modal-grid-4 > div            { min-height: 58px !important; padding: 12px !important; justify-content: center !important; }
+
+  /* Export modal → bottom sheet */
+  .export-modal-wrap { align-items: flex-end; padding: 0; }
+  .export-modal-wrap .modal-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 78vh;
+    border-radius: 20px 20px 0 0;
+  }
+  .export-modal-wrap .modal-shell::before {
+    content: ''; display: block; flex-shrink: 0;
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--ink-10, rgba(0,0,0,0.12));
+    margin: 8px auto 0;
+  }
+
+  /* Add new modal → bottom sheet */
+  .addnew-modal-wrap { align-items: flex-end; padding: 0; }
+  .addnew-modal-wrap .modal-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+  }
+  .addnew-modal-wrap .modal-shell::before {
+    content: ''; display: block; flex-shrink: 0;
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--ink-10, rgba(0,0,0,0.12));
+    margin: 8px auto 0;
+  }
 
   /* Bulk-upload banner — button drops to its own line */
   .bulk-banner { flex-wrap: wrap; }
